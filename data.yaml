@@ -1,0 +1,13 @@
+# data.yaml dosyasının bulunduğu klasörü temel alır
+path: . 
+
+# Klasör yolları (Yanında olduğu için ../ sildik)
+train: train/images
+val: valid/images
+test: test/images
+
+# Sınıf sayısı
+nc: 4
+
+# Sınıf isimleri
+names: ['bus', 'car', 'motorcycle', 'truck']

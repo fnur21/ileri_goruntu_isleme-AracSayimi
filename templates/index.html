@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>NexVision Trafik Analiz</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-layer-group"></i> NexVision
+        </div>
+
+        <ul class="menu">
+            <li class="active" onclick="showTab('panel')"><i class="fas fa-chart-pie"></i> Panel</li>
+            <li onclick="showTab('history')"><i class="fas fa-history"></i> Geçmiş (Galeri)</li>
+            <li onclick="showTab('settings')"><i class="fas fa-cog"></i> Ayarlar</li>
+        </ul>
+
+        <div class="upload-area">
+            <form action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
+                <input type="file" name="file" id="fileInput" hidden onchange="document.getElementById('uploadForm').submit()">
+                <label for="fileInput" class="btn-upload">
+                    <i class="fas fa-cloud-upload-alt"></i> Video Yükle
+                </label>
+            </form>
+        </div>
+    </div>
+
+    <div class="main-content">
+
+        <header>
+            <div>
+                <h2>Trafik Analiz Sistemi</h2>
+                <p>VİDEO MODU - Akış Analizi</p>
+            </div>
+            <div class="status-badge"><span class="dot"></span> Sistem Aktif</div>
+        </header>
+
+        <div id="tab-panel" class="tab-content active">
+            <div class="stats-grid">
+                <div class="card card-blue">
+                    <div class="icon"><i class="fas fa-car"></i></div>
+                    <div>
+                        <small>Otomobil</small>
+                        <h3 id="cnt-araba">0</h3>
+                    </div>
+                </div>
+                <div class="card card-orange">
+                    <div class="icon"><i class="fas fa-bus"></i></div>
+                    <div>
+                        <small>Otobüs</small>
+                        <h3 id="cnt-otobus">0</h3>
+                    </div>
+                </div>
+                <div class="card card-red">
+                    <div class="icon"><i class="fas fa-truck"></i></div>
+                    <div>
+                        <small>Kamyon</small>
+                        <h3 id="cnt-kamyon">0</h3>
+                    </div>
+                </div>
+                <div class="card card-green">
+                    <div class="icon"><i class="fas fa-motorcycle"></i></div>
+                    <div>
+                        <small>Motor</small>
+                        <h3 id="cnt-motor">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-split">
+                <div class="video-container">
+                    <div class="video-header">
+                        <i class="fas fa-eye"></i> Analiz Ekranı
+                        <span class="badge-live">CANLI AKIŞ</span>
+                    </div>
+                    <div class="video-wrapper">
+                        <img src="{{ url_for('video_feed') }}" alt="Video Yok">
+                    </div>
+                </div>
+
+                <div class="logs-container">
+                    <div class="logs-header"><i class="fas fa-list"></i> Anlık Tespitler</div>
+                    <ul id="live-logs" class="log-list">
+                        </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-history" class="tab-content">
+            <h3><i class="fas fa-database"></i> Tespit Geçmişi</h3>
+            <div class="history-table-wrapper">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Saat</th>
+                            <th>Araç Tipi</th>
+                            <th>Takip ID</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="full-history-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-settings" class="tab-content">
+            <h3><i class="fas fa-sliders-h"></i> Sistem Ayarları</h3>
+            <div class="settings-box">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Video Döngüsü (Loop)</h4>
+                        <p>Video bittiğinde otomatik başa sar</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="loopToggle" onchange="toggleLoop()">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Sekmeleri gizle/göster
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+            // Menü aktifliği
+            document.querySelectorAll('.menu li').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        function toggleLoop() {
+            const isChecked = document.getElementById('loopToggle').checked;
+            fetch('/settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({loop: isChecked})
+            });
+        }
+
+        // Verileri Güncelle
+        setInterval(() => {
+            fetch('/data')
+                .then(r => r.json())
+                .then(data => {
+                    // Kartları Güncelle
+                    document.getElementById('cnt-araba').innerText = data.counts.araba;
+                    document.getElementById('cnt-otobus').innerText = data.counts.otobus;
+                    document.getElementById('cnt-kamyon').innerText = data.counts.kamyon;
+                    document.getElementById('cnt-motor').innerText = data.counts.motor;
+
+                    // Sağ Panel Logları (İlk 5 tanesi)
+                    const liveList = document.getElementById('live-logs');
+                    liveList.innerHTML = "";
+                    data.logs.slice(0, 7).forEach(log => {
+                        liveList.innerHTML += `
+                            <li>
+                                <span class="time">${log.time}</span>
+                                <span class="type type-${log.type}">${log.type.toUpperCase()} #${log.id}</span>
+                            </li>
+                        `;
+                    });
+
+                    // Geçmiş Tablosu
+                    const historyTable = document.getElementById('full-history-body');
+                    historyTable.innerHTML = "";
+                    data.logs.forEach(log => {
+                        historyTable.innerHTML += `
+                            <tr>
+                                <td>${log.time}</td>
+                                <td>${log.type.toUpperCase()}</td>
+                                <td>#${log.id}</td>
+                                <td><span class="badge-success">Tespit Edildi</span></td>
+                            </tr>
+                        `;
+                    });
+                });
+        }, 1000);
+    </script>
+</body>
+</html>
