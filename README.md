@@ -9,6 +9,7 @@ Proje, kullanıcıların kolayca video veya resim yükleyip sonuçları görebil
 ## 🖥️ Proje Arayüzü
 
 Aşağıda, geliştirilen web arayüzünün ve tespit işleminin bir örneği görülmektedir:
+2025-12-23%20174758.png
 
 
 ## ✨ Özellikler
