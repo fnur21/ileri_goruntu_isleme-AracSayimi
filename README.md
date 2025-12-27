@@ -8,7 +8,7 @@ Proje, kullanıcıların kolayca video veya resim yükleyip sonuçları görebil
 
 ## 🖥️ Proje Arayüzü
 
-Aşağıda, geliştirilen web arayüzünün ve tespit işleminin bir örneği görülmektedir:
+Aşağıda, geliştirilen web arayüzünün ve tespit işleminin bir örneği görülmektedir: Görselde görüldüğü gibi araçlar sanal çizgiyi geçtiği anda sayıma ekleniyor.
 ![Demo Görseli](./2025-12-23%20174758.png)
 
 
